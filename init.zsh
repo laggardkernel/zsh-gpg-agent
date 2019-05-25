@@ -28,35 +28,38 @@ export GPG_KEY=$TTY
 _gpg_agent_conf="${GNUPGHOME:-$HOME/.gnupg}/gpg-agent.conf"
 
 # Integrate with the SSH module.
-if [[ -r $_gpg_agent_conf ]] && \
-  command grep -q '^enable-ssh-support' "$_gpg_agent_conf"; then
-  # use custom env var _GPG_AGENT_SOCK to remember socket location
-  # gpgconf --list-dirs agent-socket, or agent-ssh-socket
-  if [[ -z $_GPG_AGENT_SOCK ]]; then
-    export _GPG_AGENT_SOCK=$(gpgconf --list-dirs agent-socket)
+if { [[ -z "$SSH_TTY" ]] && zstyle -T ':prezto:module:gpg-agent:auto-start' local } || \
+  { [[ -n "$SSH_TTY" ]] && zstyle -t ':prezto:module:gpg-agent:auto-start' remote }; then
+  if [[ -r $_gpg_agent_conf ]] && \
+    command grep -q '^enable-ssh-support' "$_gpg_agent_conf"; then
+    # use custom env var _GPG_AGENT_SOCK to remember socket location
+    # gpgconf --list-dirs agent-socket, or agent-ssh-socket
+    if [[ -z $_GPG_AGENT_SOCK ]]; then
+      export _GPG_AGENT_SOCK=$(gpgconf --list-dirs agent-socket)
+    fi
+
+    # launch gpg-agent manually, in case it's used as agent for SSH
+    if [[ ! -S $_GPG_AGENT_SOCK ]]; then
+      gpgconf --launch gpg-agent 2>/dev/null
+    fi
+
+    # export socket for agent
+    unset SSH_AGENT_PID 2>/dev/null
+    if [[ -z $_GPG_AGENT_SSH_SOCK ]]; then
+      export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+    else
+      export SSH_AUTH_SOCK="$_GPG_AGENT_SSH_SOCK"
+    fi
+
+    # Updates the gpg-agent TTY before every command since
+    # there's no way to detect this info in the ssh-agent protocol
+    function _gpg-agent-update-tty {
+      gpg-connect-agent UPDATESTARTUPTTY /bye &>/dev/null
+    }
+
+    autoload -Uz add-zsh-hook
+    add-zsh-hook preexec _gpg-agent-update-tty
   fi
-
-  # launch gpg-agent manually, in case it's used as agent for SSH
-  if [[ ! -S $_GPG_AGENT_SOCK ]]; then
-    gpgconf --launch gpg-agent 2>/dev/null
-  fi
-
-  # export socket for agent
-  unset SSH_AGENT_PID 2>/dev/null
-  if [[ -z $_GPG_AGENT_SSH_SOCK ]]; then
-    export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
-  else
-    export SSH_AUTH_SOCK="$_GPG_AGENT_SSH_SOCK"
-  fi
-
-  # Updates the gpg-agent TTY before every command since 
-  # there's no way to detect this info in the ssh-agent protocol
-  function _gpg-agent-update-tty {
-    gpg-connect-agent UPDATESTARTUPTTY /bye &>/dev/null
-  }
-
-  autoload -Uz add-zsh-hook
-  add-zsh-hook preexec _gpg-agent-update-tty
 fi
 
 if [[ -n $SSH_TTY ]]; then
