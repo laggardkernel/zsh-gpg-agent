@@ -45,10 +45,14 @@ if { [[ -z "$SSH_TTY" ]] && zstyle -T ':prezto:module:gpg-agent:auto-start' loca
 
     # export socket for agent
     unset SSH_AGENT_PID 2>/dev/null
-    if [[ -z $_GPG_AGENT_SSH_SOCK ]]; then
-      export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
-    else
-      export SSH_AUTH_SOCK="$_GPG_AGENT_SSH_SOCK"
+    # test for the case when the agent is started as `gpg-agent --daemon /bin/sh`
+    # https://wiki.archlinux.org/index.php/GnuPG#Set_SSH_AUTH_SOCK
+    if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
+      if [[ -z $_GPG_AGENT_SSH_SOCK ]]; then
+        export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+      else
+        export SSH_AUTH_SOCK="$_GPG_AGENT_SSH_SOCK"
+      fi
     fi
 
     # Updates the gpg-agent TTY before every command since
