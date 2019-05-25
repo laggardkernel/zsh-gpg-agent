@@ -30,39 +30,53 @@ _gpg_agent_conf="${GNUPGHOME:-$HOME/.gnupg}/gpg-agent.conf"
 # Integrate with the SSH module.
 if { [[ -z "$SSH_TTY" ]] && zstyle -T ':prezto:module:gpg-agent:auto-start' local } || \
   { [[ -n "$SSH_TTY" ]] && zstyle -t ':prezto:module:gpg-agent:auto-start' remote }; then
-  if [[ -r $_gpg_agent_conf ]] && \
-    command grep -q '^enable-ssh-support' "$_gpg_agent_conf"; then
-    # use custom env var _GPG_AGENT_SOCK to remember socket location
-    # gpgconf --list-dirs agent-socket, or agent-ssh-socket
-    if [[ -z $_GPG_AGENT_SOCK ]]; then
-      export _GPG_AGENT_SOCK=$(gpgconf --list-dirs agent-socket)
-    fi
-
-    # launch gpg-agent manually, in case it's used as agent for SSH
-    if [[ ! -S $_GPG_AGENT_SOCK ]]; then
-      gpgconf --launch gpg-agent 2>/dev/null
-    fi
-
-    # export socket for agent
-    unset SSH_AGENT_PID 2>/dev/null
-    # test for the case when the agent is started as `gpg-agent --daemon /bin/sh`
-    # https://wiki.archlinux.org/index.php/GnuPG#Set_SSH_AUTH_SOCK
-    if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
-      if [[ -z $_GPG_AGENT_SSH_SOCK ]]; then
-        export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+  if [[ -r $_gpg_agent_conf ]]; then
+    # cache detection for ssh agent support
+    _cache_file="${TMPDIR:-/tmp}/gpg-agent-cache.$UID.zsh"
+    if [[ ! -s "$_cache_file" \
+      || "$_gpg_agent_conf" -nt "$_cache_file" ]]; then
+      if command grep -q '^enable-ssh-support' "$_gpg_agent_conf"; then 
+        echo "_GPG_AGENT_SSH_SUPPORT=1" >| "$_cache_file" 2>/dev/null
       else
-        export SSH_AUTH_SOCK="$_GPG_AGENT_SSH_SOCK"
+        echo "_GPG_AGENT_SSH_SUPPORT=0" >| "$_cache_file" 2>/dev/null
       fi
     fi
+    source "$_cache_file"
+    unset _cache_file
 
-    # Updates the gpg-agent TTY before every command since
-    # there's no way to detect this info in the ssh-agent protocol
-    function _gpg-agent-update-tty {
-      gpg-connect-agent UPDATESTARTUPTTY /bye &>/dev/null
-    }
+    if [[ $_GPG_AGENT_SSH_SUPPORT == 1 ]]; then
+      # use custom env var _GPG_AGENT_SOCK to remember socket location
+      # gpgconf --list-dirs agent-socket, or agent-ssh-socket
+      if [[ -z $_GPG_AGENT_SOCK ]]; then
+        export _GPG_AGENT_SOCK=$(gpgconf --list-dirs agent-socket)
+      fi
 
-    autoload -Uz add-zsh-hook
-    add-zsh-hook preexec _gpg-agent-update-tty
+      # launch gpg-agent manually, in case it's used as agent for SSH
+      if [[ ! -S $_GPG_AGENT_SOCK ]]; then
+        gpgconf --launch gpg-agent 2>/dev/null
+      fi
+
+      # export socket for agent
+      unset SSH_AGENT_PID 2>/dev/null
+      # test for the case when the agent is started as `gpg-agent --daemon /bin/sh`
+      # https://wiki.archlinux.org/index.php/GnuPG#Set_SSH_AUTH_SOCK
+      if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
+        if [[ -z $_GPG_AGENT_SSH_SOCK ]]; then
+          export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+        else
+          export SSH_AUTH_SOCK="$_GPG_AGENT_SSH_SOCK"
+        fi
+      fi
+
+      # Updates the gpg-agent TTY before every command since
+      # there's no way to detect this info in the ssh-agent protocol
+      function _gpg-agent-update-tty {
+        gpg-connect-agent UPDATESTARTUPTTY /bye &>/dev/null
+      }
+
+      autoload -Uz add-zsh-hook
+      add-zsh-hook preexec _gpg-agent-update-tty
+    fi
   fi
 fi
 
