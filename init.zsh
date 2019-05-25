@@ -73,7 +73,7 @@ if [[ -n $SSH_TTY ]]; then
 
       if [[ -S $_GPG_AGENT_SOCK ]]; then
         gpgconf --kill gpg-agent 2>/dev/null
-        command rm -f "$AGENT_SOCK" 2>/dev/null
+        command rm -f "$_GPG_AGENT_SOCK" 2>/dev/null
       fi
     }
     autoload -Uz add-zsh-hook
