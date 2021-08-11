@@ -9,6 +9,7 @@ The plugin is designed as a [Prezto][prezto] module, but it's also
 compatible with other plugin managers.
 
 ## Features
+
 Manually start `gpg-agent` in case it's used as agent for SSH.
 
 Set the startup `TTY` and `X-DISPLAY` variables to direct future pinentry invocations
@@ -16,11 +17,12 @@ to another screen. (The settings are needed when `gpg-agent` is used for SSH aut
 
 On remote machine (SSH connection), force ncurses-based prompt for paraphrase input.
 
-The plugin also remove the agent socket when logout from SSH, cause overwriting an existing
-socket file in remote forwarding is disabled by default.
+The plugin also remove the agent socket when logout from SSH, cause overwriting
+an existing socket file in remote forwarding is disabled by default.
 
 The plugin is designed as a replacement for existing gpg plugins
 from Oh-My-ZSH and Prezto, both of which are outdated:
+
 1. `gpg` command auto starts the `gpg-agent`. There's no need to start it
 manually unless `gpg-agent` is used for SSH
 2. `GPG_AGENT_INFO` is removed in GnuPG 2.1.0
@@ -28,24 +30,26 @@ manually unless `gpg-agent` is used for SSH
 
 ## Installation
 
-### [Zplugin][zplugin]
+### [Zinit][zinit]
 
 The only ZSH plugin manager solves the time-consuming init for
 `nvm`, `nodenv`, `pyenv`, `rvm`, `rbenv`, `thefuck`, `fasd`, etc,
 with its amazing async [Turbo Mode][turbo mode].
 
 ```zsh
-zplugin ice wait'1' lucid
-zplugin light laggardkernel/zsh-gpg-agent
+zinit ice wait'1' lucid
+zinit light laggardkernel/zsh-gpg-agent
 ```
 
 ### [Prezto][prezto]
 
 The only framework does **optimizations** in plugins with sophisticated coding skill:
+
 - [refreshing `.zcompdump` every 20h][prezto zcompdump 1]
 - [compiling `.zcompdump` as bytecode in the background][prezto zcompdump 2]
 - [caching init script for fasd][prezto fasd]
-- saving `*env` startup time with [`init - --no-rehash` for `rbenv`, `pyenv`, `nodenv`][prezto *env]
+- saving `*env` startup time with
+  [`init - --no-rehash` for `rbenv`, `pyenv`, `nodenv`][prezto *env]
 - [removing the horribly time-consuming `brew command` from `command-not-found`][prezto brew command]
 
 ```zsh
@@ -54,7 +58,9 @@ git clone https://github.com/laggardkernel/zsh-gpg-agent.git ${ZDOTDIR:-$HOME}/.
 ```
 
 ## Settings
+
 ### Socket Location
+
 Using `gpgconf --list-dir agent-socket` to get the socket location is not the
 fastest, but the most compatible. To speed up the location detection for
 sockets, you may wanna set the following variables before the plugin is loaded.
@@ -70,7 +76,9 @@ fi
 ```
 
 ### Auto Start
-`gpg-agent` auto start and `SSH_AUTH_SOCK` `export` could be controlled by `zstyle` settings,
+
+`gpg-agent` auto start and `SSH_AUTH_SOCK` `export` could be controlled by
+`zstyle` settings,
 
 ```zsh
 zstyle ':prezto:module:gpg-agent:auto-start' local 'yes' # default yes
@@ -80,19 +88,20 @@ zstyle ':prezto:module:gpg-agent:auto-start' remote 'no' # default no
 **Note**: `gpg-agent` autostart is disabled by default on remote machine.
 
 ## TODO
+
 - [ ] Cache `ssh-agent-support` detection for GnuPG
 
 ## License
 
 The MIT License (MIT)
 
-Copyright (c) 2019 laggardkernel
+Copyright (c) 2021 laggardkernel
 
 [license icon]: https://img.shields.io/badge/License-MIT-blue.svg
 [license]: https://opensource.org/licenses/MIT
 
-[zplugin]: https://github.com/zdharma/zplugin
-[turbo mode]: https://github.com/zdharma/zplugin#turbo-mode-zsh--53
+[zinit]: https://github.com/zdharma/zinit
+[turbo mode]: https://zdharma.github.io/zinit/wiki/INTRODUCTION/#turbo_mode_zsh_53
 
 [prezto]: https://github.com/sorin-ionescu/prezto
 [prezto zcompdump 1]: https://github.com/sorin-ionescu/prezto/blob/4abbc5572149baa6a5e7e38393a4b2006f01024f/modules/completion/init.zsh#L31-L41

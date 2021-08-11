@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # vim:fdm=marker:foldlevel=0:sw=2:ts=2:sts=2
 #
-# Copyright 2019, laggardkernel and the zsh-gpg-agent contributors
+# Copyright 2021, laggardkernel and the zsh-gpg-agent contributors
 # SPDX-License-Identifier: MIT
 
 # Auto start gpg-agent, auto remove socket before logout
