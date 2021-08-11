@@ -21,8 +21,8 @@ fi
 # path=("${0:h}/bin" "${path[@]}")
 # fpath=("${0:h}/functions" "${fpath[@]}")
 
-# export GPG_KEY=$(tty)
-export GPG_KEY=$TTY
+# TTY is a zsh global var, not exported
+export GPG_TTY="${TTY:-$(tty)}"
 
 # Set the default paths to gpg-agent files.
 _gpg_agent_conf="${GNUPGHOME:-$HOME/.gnupg}/gpg-agent.conf"
