@@ -32,7 +32,7 @@ if { [[ -z "$SSH_TTY" ]] && zstyle -T ':prezto:module:gpg-agent:auto-start' loca
   { [[ -n "$SSH_TTY" ]] && zstyle -t ':prezto:module:gpg-agent:auto-start' remote }; then
   if [[ -r $_gpg_agent_conf ]]; then
     # cache detection for ssh agent support
-    _cache_file="${TMPDIR:-/tmp}/gpg-agent-cache.$UID.zsh"
+    _cache_file="${XDG_CACHE_HOME:-$HOME/.cache}/gpg-agent-cache.zsh"
     if [[ ! -s "$_cache_file" \
       || "$_gpg_agent_conf" -nt "$_cache_file" ]]; then
       if command grep -q '^enable-ssh-support' "$_gpg_agent_conf"; then 
